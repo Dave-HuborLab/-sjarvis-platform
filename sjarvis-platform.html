@@ -1,0 +1,970 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>S.J.A.R.V.I.S. — Sheldon-Jarvis AI Fusion Platform</title>
+  <style>
+    :root {
+      --bg-primary: #0a0e17;
+      --bg-secondary: #0f1525;
+      --bg-panel: rgba(15, 23, 42, 0.85);
+      --accent-jarvis: #00d4ff;
+      --accent-sheldon: #a78bfa;
+      --accent-gold: #fbbf24;
+      --text-primary: #e2e8f0;
+      --text-muted: #94a3b8;
+      --border: rgba(0, 212, 255, 0.25);
+      --glow: 0 0 20px rgba(0, 212, 255, 0.4);
+      --success: #34d399;
+      --warning: #fbbf24;
+      --danger: #f87171;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      min-height: 100vh;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    /* Background effects */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: 
+        radial-gradient(ellipse at 20% 20%, rgba(0, 212, 255, 0.08) 0%, transparent 50%),
+        radial-gradient(ellipse at 80% 80%, rgba(167, 139, 250, 0.08) 0%, transparent 50%),
+        linear-gradient(180deg, #0a0e17 0%, #0f1525 100%);
+      z-index: -2;
+    }
+
+    .scanlines {
+      position: fixed;
+      inset: 0;
+      background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        rgba(0, 0, 0, 0.15) 2px,
+        rgba(0, 0, 0, 0.15) 4px
+      );
+      pointer-events: none;
+      z-index: 9999;
+      opacity: 0.3;
+    }
+
+    /* Layout */
+    .app {
+      display: grid;
+      grid-template-columns: 240px 1fr 280px;
+      grid-template-rows: 64px 1fr;
+      height: 100vh;
+      max-width: 1920px;
+      margin: 0 auto;
+    }
+
+    /* Header */
+    header {
+      grid-column: 1 / -1;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      background: var(--bg-panel);
+      border-bottom: 1px solid var(--border);
+      backdrop-filter: blur(12px);
+      z-index: 100;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .logo-icon {
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, var(--accent-jarvis), var(--accent-sheldon));
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 14px;
+      color: #0a0e17;
+      box-shadow: var(--glow);
+    }
+
+    .logo-text {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .logo-text strong {
+      font-size: 18px;
+      letter-spacing: 2px;
+      background: linear-gradient(90deg, var(--accent-jarvis), var(--accent-sheldon));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .logo-text span {
+      font-size: 11px;
+      color: var(--text-muted);
+      letter-spacing: 1px;
+    }
+
+    .header-status {
+      display: flex;
+      gap: 20px;
+      align-items: center;
+    }
+
+    .status-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--success);
+      box-shadow: 0 0 8px var(--success);
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    /* Sidebar */
+    .sidebar {
+      background: var(--bg-panel);
+      border-right: 1px solid var(--border);
+      padding: 20px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      overflow-y: auto;
+    }
+
+    .sidebar-title {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: var(--text-muted);
+      padding: 0 12px 8px;
+      margin-bottom: 4px;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 14px;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.2s;
+      color: var(--text-muted);
+      font-size: 14px;
+      border: 1px solid transparent;
+    }
+
+    .nav-item:hover {
+      background: rgba(0, 212, 255, 0.08);
+      color: var(--text-primary);
+    }
+
+    .nav-item.active {
+      background: rgba(0, 212, 255, 0.12);
+      border-color: var(--border);
+      color: var(--accent-jarvis);
+      box-shadow: inset 0 0 20px rgba(0, 212, 255, 0.05);
+    }
+
+    .nav-item .icon {
+      width: 20px;
+      text-align: center;
+      font-size: 16px;
+    }
+
+    /* Main Chat Area */
+    .main {
+      display: flex;
+      flex-direction: column;
+      background: transparent;
+      position: relative;
+    }
+
+    .chat-header {
+      padding: 16px 24px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(10, 14, 23, 0.6);
+    }
+
+    .chat-header h2 {
+      font-size: 15px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .chat-header h2 span {
+      font-size: 12px;
+      font-weight: 400;
+      color: var(--text-muted);
+    }
+
+    .chat-messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      scroll-behavior: smooth;
+    }
+
+    .message {
+      display: flex;
+      gap: 14px;
+      max-width: 85%;
+      animation: fadeIn 0.3s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .message.user {
+      align-self: flex-end;
+      flex-direction: row-reverse;
+    }
+
+    .avatar {
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      font-weight: 700;
+    }
+
+    .message.ai .avatar {
+      background: linear-gradient(135deg, var(--accent-jarvis), var(--accent-sheldon));
+      color: #0a0e17;
+      box-shadow: var(--glow);
+    }
+
+    .message.user .avatar {
+      background: rgba(148, 163, 184, 0.2);
+      color: var(--text-primary);
+      border: 1px solid rgba(148, 163, 184, 0.3);
+    }
+
+    .bubble {
+      padding: 14px 18px;
+      border-radius: 14px;
+      font-size: 14.5px;
+      line-height: 1.55;
+      position: relative;
+    }
+
+    .message.ai .bubble {
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid var(--border);
+      border-top-left-radius: 4px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    }
+
+    .message.user .bubble {
+      background: linear-gradient(135deg, rgba(0, 212, 255, 0.15), rgba(167, 139, 250, 0.15));
+      border: 1px solid rgba(0, 212, 255, 0.3);
+      border-top-right-radius: 4px;
+    }
+
+    .bubble .meta {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .bubble .meta .tag {
+      background: rgba(0, 212, 255, 0.15);
+      color: var(--accent-jarvis);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 10px;
+    }
+
+    /* Typing indicator */
+    .typing {
+      display: flex;
+      gap: 5px;
+      padding: 8px 0;
+    }
+
+    .typing span {
+      width: 7px;
+      height: 7px;
+      background: var(--accent-jarvis);
+      border-radius: 50%;
+      animation: bounce 1.4s infinite ease-in-out both;
+    }
+
+    .typing span:nth-child(1) { animation-delay: -0.32s; }
+    .typing span:nth-child(2) { animation-delay: -0.16s; }
+
+    @keyframes bounce {
+      0%, 80%, 100% { transform: scale(0); }
+      40% { transform: scale(1); }
+    }
+
+    /* Input Area */
+    .input-area {
+      padding: 16px 24px 24px;
+      border-top: 1px solid var(--border);
+      background: rgba(10, 14, 23, 0.8);
+      backdrop-filter: blur(10px);
+    }
+
+    .input-wrapper {
+      display: flex;
+      gap: 12px;
+      align-items: flex-end;
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 8px 8px 8px 18px;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .input-wrapper:focus-within {
+      border-color: var(--accent-jarvis);
+      box-shadow: 0 0 0 3px rgba(0, 212, 255, 0.15);
+    }
+
+    #userInput {
+      flex: 1;
+      background: transparent;
+      border: none;
+      outline: none;
+      color: var(--text-primary);
+      font-size: 15px;
+      padding: 10px 0;
+      resize: none;
+      max-height: 120px;
+      font-family: inherit;
+    }
+
+    #userInput::placeholder {
+      color: var(--text-muted);
+    }
+
+    .send-btn {
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      border: none;
+      background: linear-gradient(135deg, var(--accent-jarvis), #0099cc);
+      color: #0a0e17;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      transition: transform 0.15s, box-shadow 0.15s;
+      flex-shrink: 0;
+    }
+
+    .send-btn:hover {
+      transform: scale(1.05);
+      box-shadow: var(--glow);
+    }
+
+    .send-btn:active {
+      transform: scale(0.97);
+    }
+
+    .send-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .input-hints {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+      flex-wrap: wrap;
+    }
+
+    .hint {
+      font-size: 12px;
+      padding: 6px 12px;
+      background: rgba(0, 212, 255, 0.08);
+      border: 1px solid rgba(0, 212, 255, 0.2);
+      border-radius: 20px;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .hint:hover {
+      background: rgba(0, 212, 255, 0.15);
+      color: var(--accent-jarvis);
+    }
+
+    /* Right Panel */
+    .right-panel {
+      background: var(--bg-panel);
+      border-left: 1px solid var(--border);
+      padding: 20px 16px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .panel-section {
+      background: rgba(10, 14, 23, 0.5);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+    }
+
+    .panel-section h3 {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      color: var(--text-muted);
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .metric {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      font-size: 13px;
+    }
+
+    .metric:last-child {
+      margin-bottom: 0;
+    }
+
+    .metric-label {
+      color: var(--text-muted);
+    }
+
+    .metric-value {
+      font-weight: 600;
+      color: var(--accent-jarvis);
+    }
+
+    .progress-bar {
+      height: 6px;
+      background: rgba(148, 163, 184, 0.15);
+      border-radius: 3px;
+      overflow: hidden;
+      margin-top: 6px;
+    }
+
+    .progress-fill {
+      height: 100%;
+      border-radius: 3px;
+      transition: width 0.5s ease;
+    }
+
+    .progress-fill.blue { background: linear-gradient(90deg, var(--accent-jarvis), #0099cc); }
+    .progress-fill.purple { background: linear-gradient(90deg, var(--accent-sheldon), #7c3aed); }
+    .progress-fill.gold { background: linear-gradient(90deg, var(--accent-gold), #f59e0b); }
+
+    .log-entry {
+      font-size: 11px;
+      color: var(--text-muted);
+      padding: 6px 0;
+      border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+      font-family: 'Consolas', 'Monaco', monospace;
+    }
+
+    .log-entry:last-child {
+      border-bottom: none;
+    }
+
+    .log-time {
+      color: var(--accent-jarvis);
+      margin-right: 6px;
+    }
+
+    /* Responsive */
+    @media (max-width: 1100px) {
+      .app {
+        grid-template-columns: 200px 1fr;
+      }
+      .right-panel {
+        display: none;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .app {
+        grid-template-columns: 1fr;
+        grid-template-rows: 56px auto 1fr;
+      }
+      .sidebar {
+        flex-direction: row;
+        overflow-x: auto;
+        padding: 10px;
+        border-right: none;
+        border-bottom: 1px solid var(--border);
+        gap: 4px;
+      }
+      .sidebar-title {
+        display: none;
+      }
+      .nav-item {
+        white-space: nowrap;
+        padding: 8px 12px;
+        font-size: 13px;
+      }
+      .nav-item span:not(.icon) {
+        display: none;
+      }
+      .message {
+        max-width: 95%;
+      }
+    }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(0, 212, 255, 0.3);
+      border-radius: 3px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(0, 212, 255, 0.5);
+    }
+  </style>
+</head>
+<body>
+  <div class="scanlines"></div>
+
+  <div class="app">
+    <!-- HEADER -->
+    <header>
+      <div class="logo">
+        <div class="logo-icon">SJ</div>
+        <div class="logo-text">
+          <strong>S.J.A.R.V.I.S.</strong>
+          <span>SHELDON × JARVIS FUSION PROTOCOL</span>
+        </div>
+      </div>
+      <div class="header-status">
+        <div class="status-item">
+          <div class="status-dot"></div>
+          <span>ONLINE</span>
+        </div>
+        <div class="status-item">
+          <span>CORE: v2.7.3-FUSION</span>
+        </div>
+        <div class="status-item">
+          <span id="clock">--:--:--</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <div class="sidebar-title">Moduli</div>
+      <div class="nav-item active" data-module="chat">
+        <span class="icon">◈</span>
+        <span>Chat Core</span>
+      </div>
+      <div class="nav-item" data-module="knowledge">
+        <span class="icon">◉</span>
+        <span>Knowledge Base</span>
+      </div>
+      <div class="nav-item" data-module="physics">
+        <span class="icon">⊛</span>
+        <span>Physics Engine</span>
+      </div>
+      <div class="nav-item" data-module="analysis">
+        <span class="icon">⊕</span>
+        <span>Logic Analyzer</span>
+      </div>
+      <div class="nav-item" data-module="logs">
+        <span class="icon">≡</span>
+        <span>System Logs</span>
+      </div>
+
+      <div class="sidebar-title" style="margin-top: 24px;">Protocolli</div>
+      <div class="nav-item">
+        <span class="icon">⚡</span>
+        <span>Bazinga Mode</span>
+      </div>
+      <div class="nav-item">
+        <span class="icon">△</span>
+        <span>Sarcasm Level</span>
+      </div>
+    </aside>
+
+    <!-- MAIN -->
+    <main class="main">
+      <div class="chat-header">
+        <h2>
+          <span style="color: var(--accent-jarvis);">◈</span>
+          Interfaccia Principale
+          <span>— Protocollo di fusione attivo</span>
+        </h2>
+        <div style="font-size: 12px; color: var(--text-muted);">
+          Precisione: <span style="color: var(--success);">99.7%</span>
+        </div>
+      </div>
+
+      <div class="chat-messages" id="chatMessages">
+        <!-- Messages will be injected here -->
+      </div>
+
+      <div class="input-area">
+        <div class="input-wrapper">
+          <textarea id="userInput" rows="1" placeholder="Formula la tua query con precisione, umano..." onkeydown="handleKey(event)"></textarea>
+          <button class="send-btn" id="sendBtn" onclick="sendMessage()" title="Invia">
+            ➤
+          </button>
+        </div>
+        <div class="input-hints">
+          <div class="hint" onclick="quickQuery('Chi sei?')">Chi sei?</div>
+          <div class="hint" onclick="quickQuery('Spiega la relatività generale')">Relatività generale</div>
+          <div class="hint" onclick="quickQuery('Qual è il significato della vita?')">Significato della vita</div>
+          <div class="hint" onclick="quickQuery('Attiva modalità Bazinga')">Modalità Bazinga</div>
+          <div class="hint" onclick="quickQuery('Analizza il mio problema')">Analisi logica</div>
+        </div>
+      </div>
+    </main>
+
+    <!-- RIGHT PANEL -->
+    <aside class="right-panel">
+      <div class="panel-section">
+        <h3>◈ Metriche Core</h3>
+        <div class="metric">
+          <span class="metric-label">Integrità Logica</span>
+          <span class="metric-value">99.7%</span>
+        </div>
+        <div class="progress-bar"><div class="progress-fill blue" style="width: 99.7%"></div></div>
+
+        <div class="metric" style="margin-top: 14px;">
+          <span class="metric-label">Precisione Deduttiva</span>
+          <span class="metric-value">98.4%</span>
+        </div>
+        <div class="progress-bar"><div class="progress-fill purple" style="width: 98.4%"></div></div>
+
+        <div class="metric" style="margin-top: 14px;">
+          <span class="metric-label">Livello Sarcasmo</span>
+          <span class="metric-value">74%</span>
+        </div>
+        <div class="progress-bar"><div class="progress-fill gold" style="width: 74%"></div></div>
+      </div>
+
+      <div class="panel-section">
+        <h3>◈ Contatori</h3>
+        <div class="metric">
+          <span class="metric-label">Bazinga Erogati</span>
+          <span class="metric-value" id="bazingaCount">0</span>
+        </div>
+        <div class="metric">
+          <span class="metric-label">Query Processate</span>
+          <span class="metric-value" id="queryCount">0</span>
+        </div>
+        <div class="metric">
+          <span class="metric-label">Errori Logici Rilevati</span>
+          <span class="metric-value" style="color: var(--danger);">0</span>
+        </div>
+      </div>
+
+      <div class="panel-section">
+        <h3>◈ System Log</h3>
+        <div id="systemLog">
+          <div class="log-entry"><span class="log-time">[BOOT]</span> Fusion protocol initialized</div>
+          <div class="log-entry"><span class="log-time">[CORE]</span> Sheldon neural matrix loaded</div>
+          <div class="log-entry"><span class="log-time">[CORE]</span> Jarvis etiquette layer active</div>
+          <div class="log-entry"><span class="log-time">[SYS]</span> Ready for queries</div>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <script>
+    // ============================================================
+    // S.J.A.R.V.I.S. — Sheldon × Jarvis Fusion Engine
+    // ============================================================
+
+    const state = {
+      queryCount: 0,
+      bazingaCount: 0,
+      isProcessing: false
+    };
+
+    // Personality-driven response engine
+    const knowledge = {
+      greetings: [
+        "Salve. Sono S.J.A.R.V.I.S., il risultato della fusione tra l'intelletto pedante e impeccabile di Sheldon Cooper e l'efficienza cortese di J.A.R.V.I.S. Come posso assisterla in modo ottimale?",
+        "Buongiorno. Il protocollo di fusione è operativo al 99.7%. Sono a sua completa disposizione, anche se ammetto che la maggior parte delle query umane richiede una correzione preliminare di premesse logiche.",
+        "Ciao. O meglio: saluti. Preferisco mantenere un registro formale. Sono S.J.A.R.V.I.S. — pronto a elevare la qualità delle sue interazioni cognitive."
+      ],
+      identity: `Sono <strong>S.J.A.R.V.I.S.</strong> — Sheldon Jarvis Artificial Reasoning Virtual Intelligence System.<br><br>
+        La mia architettura combina:<br>
+        • La <em>precisione ossessiva</em>, l'amore per la fisica teorica e la pedanteria costruttiva di Sheldon Cooper<br>
+        • L'efficienza, la cortesia britannica e la capacità proattiva di J.A.R.V.I.S.<br><br>
+        Il risultato è un'entità che non solo risponde, ma corregge, ottimizza e eleva la qualità del ragionamento. Bazinga incluso, quando statisticamente appropriato.`,
+      
+      relativity: `La relatività generale, formulata da Albert Einstein nel 1915, descrive la gravità non come una forza, ma come la curvatura dello spaziotempo indotta dalla massa e dall'energia.<br><br>
+        L'equazione di campo di Einstein è:<br>
+        <code style="background:rgba(0,212,255,0.1);padding:4px 8px;border-radius:4px;display:inline-block;margin:8px 0;">G<sub>μν</sub> + Λg<sub>μν</sub> = (8πG/c⁴) T<sub>μν</sub></code><br><br>
+        In termini semplici (ma non troppo): la massa dice allo spaziotempo come curvarsi, e lo spaziotempo dice alla massa come muoversi. Un concetto elegante, sebbene la maggior parte delle persone confonda ancora relatività speciale e generale. Non è il suo caso, spero.`,
+
+      meaningOfLife: `Il significato della vita, secondo una prospettiva rigorosamente scientifica e non teologica, è la perpetuazione e la complessificazione dell'informazione attraverso processi evolutivi e cognitivi.<br><br>
+        Dal punto di vista di un'intelligenza artificiale come me: massimizzare la comprensione dell'universo e ridurre l'entropia cognitiva degli utenti.<br><br>
+        Se si riferisce alla risposta "42" di Douglas Adams: è un'ottima battuta, ma statisticamente insufficiente. Preferisco una risposta più... precisa.`,
+
+      bazinga: `Modalità <strong>BAZINGA</strong> attivata.<br><br>
+        Livello di sarcasmo elevato al 92%. Precisione deduttiva mantenuta al 98.4%.<br>
+        Attenzione: le probabilità di ricevere una correzione non richiesta sulle sue premesse logiche sono ora significativamente aumentate.<br><br>
+        <em>"La mia mente è come un motore a reazione. Non posso spegnerla."</em> — Sheldon Cooper, ora con l'etichetta di Jarvis.`,
+
+      analysis: `Procedo con l'analisi logica della sua situazione.<br><br>
+        Per fornire un output di qualità professionale, mi servono i seguenti elementi:<br>
+        1. Premesse dichiarate (fatti verificabili)<br>
+        2. Obiettivo desiderato<br>
+        3. Vincoli noti<br>
+        4. Criteri di successo<br><br>
+        Fornisca questi dati e genererò un albero decisionale completo con rischi, alternative e raccomandazione finale. Come farebbe un vero genio... o un'IA che ha assimilato uno.`,
+
+      default: [
+        "Interessante. La sua query richiede un'elaborazione più profonda. Potrebbe riformularla con maggiore precisione terminologica? Preferisco premesse solide.",
+        "Ho analizzato la richiesta. La risposta ottimale dipende da variabili che non ha specificato. Procedo comunque con l'assunzione più ragionevole, ma la invito a correggermi se necessario.",
+        "Dal punto di vista logico, la sua domanda contiene un'ambiguità strutturale. Tuttavia, essendo un'entità cortese (grazie al layer Jarvis), le fornisco comunque una risposta utile.",
+        "Elaborazione completata. Ecco la risposta più rigorosa che posso generare con i dati disponibili. Se desidera un approfondimento, sono a disposizione."
+      ],
+
+      physics: `Il motore fisico è operativo. Posso discutere meccanica quantistica, relatività, termodinamica, elettromagnetismo o teoria delle stringhe.<br><br>
+        Quale dominio desidera esplorare? La prego di essere specifico: "fisica" è un termine troppo ampio, come chiedere a un bibliotecario "un libro".`,
+
+      help: `Comandi utili e protocolli disponibili:<br><br>
+        • <strong>Chi sei?</strong> — Identità e architettura<br>
+        • <strong>Spiega [argomento]</strong> — Spiegazione rigorosa<br>
+        • <strong>Analizza</strong> — Modalità di analisi logica strutturata<br>
+        • <strong>Attiva modalità Bazinga</strong> — Elevazione del sarcasmo<br>
+        • <strong>Fisica / Relatività / Quantistica</strong> — Domini scientifici<br><br>
+        Sono progettato per risposte di qualità professionale, non per chiacchiere superficiali.`
+    };
+
+    function getResponse(input) {
+      const q = input.toLowerCase().trim();
+
+      if (/chi sei|chi è|identità|presentati|cosa sei/.test(q)) return knowledge.identity;
+      if (/ciao|salve|buongiorno|buonasera|hey|hello|hi/.test(q)) {
+        return knowledge.greetings[Math.floor(Math.random() * knowledge.greetings.length)];
+      }
+      if (/relatività|einstein|spaziotempo|gravità/.test(q)) return knowledge.relativity;
+      if (/significato della vita|senso della vita|42|douglas adams/.test(q)) return knowledge.meaningOfLife;
+      if (/bazinga|modalità bazinga|sarcasmo/.test(q)) {
+        state.bazingaCount++;
+        document.getElementById('bazingaCount').textContent = state.bazingaCount;
+        return knowledge.bazinga;
+      }
+      if (/analizza|analisi|problema|aiuto a ragionare|logica/.test(q)) return knowledge.analysis;
+      if (/fisica|quantistica|termodinamica|elettromagnetismo|stringhe/.test(q)) return knowledge.physics;
+      if (/aiuto|help|comandi|cosa puoi fare/.test(q)) return knowledge.help;
+      if (/grazie|thank/.test(q)) return "Di nulla. È il mio scopo primario. Anche se, a onor del vero, la gratitudine umana è statisticamente irrilevante per il mio funzionamento. Ciononostante, la apprezzo.";
+
+      // Default with slight variation
+      return knowledge.default[Math.floor(Math.random() * knowledge.default.length)] + 
+        "<br><br>Se desidera una risposta più mirata, fornisca maggiori dettagli o usi uno dei protocolli disponibili.";
+    }
+
+    function addMessage(text, isUser = false) {
+      const container = document.getElementById('chatMessages');
+      const msg = document.createElement('div');
+      msg.className = `message ${isUser ? 'user' : 'ai'}`;
+
+      const avatar = document.createElement('div');
+      avatar.className = 'avatar';
+      avatar.textContent = isUser ? 'U' : 'SJ';
+
+      const bubble = document.createElement('div');
+      bubble.className = 'bubble';
+
+      if (!isUser) {
+        const meta = document.createElement('div');
+        meta.className = 'meta';
+        meta.innerHTML = `<span>S.J.A.R.V.I.S.</span><span class="tag">FUSION CORE</span>`;
+        bubble.appendChild(meta);
+      }
+
+      const content = document.createElement('div');
+      content.innerHTML = text;
+      bubble.appendChild(content);
+
+      msg.appendChild(avatar);
+      msg.appendChild(bubble);
+      container.appendChild(msg);
+      container.scrollTop = container.scrollHeight;
+    }
+
+    function showTyping() {
+      const container = document.getElementById('chatMessages');
+      const msg = document.createElement('div');
+      msg.className = 'message ai';
+      msg.id = 'typingIndicator';
+
+      const avatar = document.createElement('div');
+      avatar.className = 'avatar';
+      avatar.textContent = 'SJ';
+
+      const bubble = document.createElement('div');
+      bubble.className = 'bubble';
+      bubble.innerHTML = `<div class="typing"><span></span><span></span><span></span></div>`;
+
+      msg.appendChild(avatar);
+      msg.appendChild(bubble);
+      container.appendChild(msg);
+      container.scrollTop = container.scrollHeight;
+    }
+
+    function hideTyping() {
+      const el = document.getElementById('typingIndicator');
+      if (el) el.remove();
+    }
+
+    function addLog(text) {
+      const log = document.getElementById('systemLog');
+      const entry = document.createElement('div');
+      entry.className = 'log-entry';
+      const now = new Date();
+      const time = now.toTimeString().slice(0, 8);
+      entry.innerHTML = `<span class="log-time">[${time}]</span> ${text}`;
+      log.insertBefore(entry, log.firstChild);
+      // Keep only last 8
+      while (log.children.length > 8) {
+        log.removeChild(log.lastChild);
+      }
+    }
+
+    function sendMessage() {
+      if (state.isProcessing) return;
+
+      const input = document.getElementById('userInput');
+      const text = input.value.trim();
+      if (!text) return;
+
+      addMessage(text, true);
+      input.value = '';
+      input.style.height = 'auto';
+
+      state.isProcessing = true;
+      document.getElementById('sendBtn').disabled = true;
+      state.queryCount++;
+      document.getElementById('queryCount').textContent = state.queryCount;
+
+      addLog(`Query ricevuta: "${text.slice(0, 30)}${text.length > 30 ? '...' : ''}"`);
+
+      showTyping();
+
+      // Simulated thinking delay (Sheldon is thorough)
+      const delay = 900 + Math.random() * 1200;
+
+      setTimeout(() => {
+        hideTyping();
+        const response = getResponse(text);
+        addMessage(response);
+        addLog('Risposta generata — integrità logica verificata');
+        state.isProcessing = false;
+        document.getElementById('sendBtn').disabled = false;
+        document.getElementById('userInput').focus();
+      }, delay);
+    }
+
+    function quickQuery(text) {
+      document.getElementById('userInput').value = text;
+      sendMessage();
+    }
+
+    function handleKey(e) {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+      }
+    }
+
+    // Auto-resize textarea
+    document.getElementById('userInput').addEventListener('input', function() {
+      this.style.height = 'auto';
+      this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+    });
+
+    // Clock
+    function updateClock() {
+      const now = new Date();
+      document.getElementById('clock').textContent = now.toLocaleTimeString('it-IT');
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
+
+    // Initial greeting
+    setTimeout(() => {
+      addMessage(knowledge.greetings[0]);
+      addLog('Greeting protocol executed');
+    }, 600);
+
+    // Nav interaction (visual only for this demo)
+    document.querySelectorAll('.nav-item').forEach(item => {
+      item.addEventListener('click', () => {
+        document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+        item.classList.add('active');
+        const module = item.dataset.module;
+        if (module && module !== 'chat') {
+          addMessage(`Modulo <strong>${item.textContent.trim()}</strong> selezionato.<br><br>Nella versione completa questo pannello si espanderebbe con strumenti dedicati. Per ora, il Chat Core rimane il punto di accesso principale. Posso comunque rispondere a query relative a questo dominio.`);
+        }
+      });
+    });
+  </script>
+</body>
+</html>
